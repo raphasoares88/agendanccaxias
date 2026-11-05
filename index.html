@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agenda NC Caxias 2027</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f4ef; --card:#ffffff; --ink:#1d1b18; --muted:#6b665d; --line:#e4dfd4;
+  --brand:#1f3a5f; --brand-2:#c8963e;
+  --c-oracao:#7a4fbf; --c-conf:#c0392b; --c-igreja:#1f6f8b; --c-pastores:#8a5a2b;
+  --c-time:#2e7d4f; --c-natal:#b23a48; --c-data:#8b8b8b; --c-lider:#d17a00;
+  --hol:#d64545;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Plus Jakarta Sans",system-ui,sans-serif;font-size:15px;line-height:1.45}
+button,input,select,textarea{font:inherit}
+header{background:var(--brand);color:#fff;padding:28px 20px 22px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+header .wrap{padding:0}
+.kicker{letter-spacing:.14em;text-transform:uppercase;font-size:12px;font-weight:700;color:var(--brand-2)}
+h1{margin:4px 0 6px;font-size:30px;font-weight:800;letter-spacing:-.01em}
+header p{margin:0;opacity:.85;max-width:720px}
+nav{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;gap:6px;overflow-x:auto;padding-top:10px;padding-bottom:10px}
+nav button{border:1px solid var(--line);background:#fff;color:var(--ink);padding:8px 14px;border-radius:999px;cursor:pointer;white-space:nowrap;font-weight:600}
+nav button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+main{padding:20px 0 60px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:0 0 16px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:3px;display:inline-block;flex:none}
+.months{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.month{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 14px 10px}
+.month h2{margin:0 0 8px;font-size:17px;display:flex;justify-content:space-between;align-items:baseline}
+.month h2 small{font-weight:500;color:var(--muted);font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:10px}
+.grid .h{font-size:11px;text-align:center;color:var(--muted);font-weight:700;padding:2px 0}
+.day{position:relative;min-height:34px;border-radius:6px;padding:2px 3px;font-size:12px;background:#faf8f4;cursor:pointer;border:1px solid transparent}
+.day.empty{background:transparent;cursor:default}
+.day.sun .n{font-weight:700}
+.day.hol .n{color:var(--hol);font-weight:800}
+.day:hover:not(.empty){border-color:var(--brand)}
+.day.sel{border-color:var(--brand);background:#eef2f8}
+.bars{position:absolute;left:3px;right:3px;bottom:3px;display:flex;gap:2px}
+.bars i{flex:1;height:5px;border-radius:2px}
+.bars i.tent{opacity:.45}
+.evlist{list-style:none;margin:0;padding:0;border-top:1px dashed var(--line)}
+.evlist li{display:flex;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.evlist li:last-child{border-bottom:0}
+.evlist .d{flex:none;width:58px;color:var(--muted);font-weight:600;font-size:12px;padding-top:1px}
+.evlist .t{flex:1}
+.evlist .t b{font-weight:700}
+.evlist .meta{display:block;color:var(--muted);font-size:12px}
+.tag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:1px 6px;border-radius:4px;margin-left:4px;vertical-align:1px}
+.tag.tent{background:#fff4dc;color:#8a5a00}
+.tag.susp{background:#fde8e8;color:var(--hol)}
+.tag.opt{background:#e9eefb;color:#2b4a8a}
+.tag.lid{background:#fff0dd;color:#9a5600}
+.empty-month{color:var(--muted);font-size:13px;font-style:italic;padding:6px 0}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+.panel h3{margin:0 0 4px;font-size:18px}
+.panel p.sub{margin:0 0 14px;color:var(--muted)}
+.note{background:#fff8e8;border:1px solid #f0dfb5;border-radius:10px;padding:10px 12px;font-size:13.5px;margin:10px 0}
+.note.info{background:#eef3fa;border-color:#cfdbee}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 10px;font-size:13px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.chip.off{opacity:.4}
+label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:#fff;color:var(--ink)}
+textarea{resize:vertical;min-height:40px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.item{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:#fcfbf8}
+.item .grid4{display:grid;grid-template-columns:150px 150px 1fr 110px;gap:10px}
+.item .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-weight:700;font-size:13px}
+.item .hint{font-size:12.5px;color:#8a5a00;margin-top:6px}
+.btn{border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;background:var(--brand);color:#fff;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn.alt{background:#fff;color:var(--brand);border:1px solid var(--brand)}
+.btn.wa{background:#1fa855}
+.btn.ghost{background:transparent;color:var(--hol);border:0;padding:4px 6px;font-size:13px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;align-items:center}
+.status{font-size:13px;color:var(--muted)}
+.detail{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);width:min(560px,calc(100% - 24px));background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.18);padding:14px 16px;z-index:20;display:none}
+.detail.show{display:block}
+.detail h4{margin:0 0 6px;font-size:16px;display:flex;justify-content:space-between}
+.detail h4 button{border:0;background:none;font-size:20px;cursor:pointer;color:var(--muted)}
+.sublist{margin:6px 0 0;padding-left:18px}
+.ministry{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.ministry h4{margin:0 0 6px}
+.hidden{display:none!important}
+.toggle{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;margin-bottom:12px}
+.toggle input{width:auto}
+@media (max-width:720px){
+  h1{font-size:24px}
+  .months{grid-template-columns:1fr}
+  .item .grid4{grid-template-columns:1fr 1fr}
+  .row2{grid-template-columns:1fr}
+}
+@media print{nav,.detail,#tab-enviar,#tab-painel{display:none!important}header{background:#fff;color:#000}.month{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="kicker">Igreja Novos Começos Caxias</div>
+    <h1>Agenda NC Caxias 2027</h1>
+    <p>Esboço para planejamento. Datas marcadas como <b>a confirmar</b> ou <b>opção</b> ainda estão em definição.</p>
+  </div>
+</header>
+<nav>
+  <div class="wrap">
+    <button data-tab="cal" class="on">Calendário</button>
+    <button data-tab="lista">Lista do ano</button>
+    <button data-tab="enviar">Enviar minha programação</button>
+    <button data-tab="painel" id="navPainel" class="hidden">Painel do pastor</button>
+  </div>
+</nav>
+<main class="wrap">
+
+  <section id="tab-cal">
+    <div class="legend" id="legend"></div>
+    <label class="toggle hidden" id="overlayWrap"><input type="checkbox" id="overlay"> Mostrar no calendário as programações enviadas pelos líderes</label>
+    <div class="months" id="months"></div>
+  </section>
+
+  <section id="tab-lista" class="hidden">
+    <div class="panel">
+      <h3>Todas as datas de 2027</h3>
+      <p class="sub">Toque nas categorias para filtrar.</p>
+      <div class="filters" id="filters"></div>
+      <div style="overflow-x:auto"><table id="table"><thead><tr><th>Data</th><th>Programação</th><th>Horário</th><th>Situação</th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <section id="tab-enviar" class="hidden">
+    <div class="panel">
+      <h3>Programação do seu ministério para 2027</h3>
+      <p class="sub">Liste o que o seu ministério está planejando para o ano. Pode ser um esboço: se ainda não tiver o dia exato, escolha uma data aproximada e explique em “Detalhes”. Ao escolher uma data, avisamos se ela já tem algo na agenda da igreja.</p>
+      <div class="row2">
+        <div><label for="fLider">Seu nome</label><input id="fLider" placeholder="Ex.: Pr. João"></div>
+        <div><label for="fMin">Ministério</label><input id="fMin" placeholder="Ex.: Jovens, Kids, Louvor, Casais…"></div>
+      </div>
+      <div style="height:14px"></div>
+      <div id="items"></div>
+      <button class="btn alt" id="addItem" type="button">+ Adicionar programação</button>
+      <div class="note info" id="sendInfo">Quando terminar, envie pelo WhatsApp direto para o pastor. Ninguém além dele recebe o que você enviar.</div>
+      <div class="actions">
+        <a class="btn wa" id="btnWa" href="#" target="_blank" rel="noopener">Enviar pelo WhatsApp</a>
+        <button class="btn alt" id="btnCopy" type="button">Copiar texto</button>
+        <button class="btn hidden" id="btnSave" type="button">Salvar e enviar ao pastor</button>
+        <span class="status" id="status"></span>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-painel" class="hidden">
+    <div class="panel">
+      <h3>Programações recebidas</h3>
+      <p class="sub">Só você vê esta área. Cada líder vê apenas o que ele próprio enviou.</p>
+      <div id="painelStatus" class="status"></div>
+      <div id="painelList"></div>
+      <div class="actions"><button class="btn alt" id="btnCopyAll" type="button">Copiar tudo em texto</button><span class="status" id="copyAllStatus"></span></div>
+    </div>
+  </section>
+</main>
+
+<div class="detail" id="detail"><h4><span id="dTitle"></span><button id="dClose" aria-label="Fechar">×</button></h4><div id="dBody"></div></div>
+
+<script>
+// ---------- Configuração ----------
+const YEAR = 2027;
+const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const DSEM = ["dom","seg","ter","qua","qui","sex","sáb"];
+const CATS = {
+  oracao:{nome:"Oração", cor:"var(--c-oracao)"},
+  conf:{nome:"Conferências", cor:"var(--c-conf)"},
+  igreja:{nome:"Cultos especiais", cor:"var(--c-igreja)"},
+  natal:{nome:"Natal e virada", cor:"var(--c-natal)"},
+  pastores:{nome:"Café dos pastores", cor:"var(--c-pastores)"},
+  time:{nome:"Reunião do time ministerial", cor:"var(--c-time)"},
+  data:{nome:"Datas comemorativas", cor:"var(--c-data)"},
+  feriado:{nome:"Feriados", cor:"var(--hol)"},
+  lider:{nome:"Enviado por líderes", cor:"var(--c-lider)"}
+};
+
+// Feriados 2027 (nacionais, RJ e Duque de Caxias) — conferir municipais
+const FERIADOS = {
+  "2027-01-01":"Confraternização Universal",
+  "2027-02-08":"Carnaval (ponto facultativo)",
+  "2027-02-09":"Carnaval",
+  "2027-03-26":"Sexta-feira Santa",
+  "2027-04-21":"Tiradentes",
+  "2027-04-23":"São Jorge (RJ)",
+  "2027-05-01":"Dia do Trabalho",
+  "2027-05-27":"Corpus Christi",
+  "2027-06-13":"Santo Antônio (Duque de Caxias)",
+  "2027-09-07":"Independência",
+  "2027-10-12":"N. Sra. Aparecida",
+  "2027-11-02":"Finados",
+  "2027-11-15":"Proclamação da República",
+  "2027-11-20":"Consciência Negra",
+  "2027-12-25":"Natal"
+};
+
+// status: ok | tent (a confirmar) | opt (opção) | susp (suspenso)
+const BASE = [
+  {s:"2027-01-01", e:"2027-01-12", t:"12 Dias de Oração", c:"oracao", st:"ok"},
+  {s:"2027-02-06", t:"Conferência de Carnaval — noite 1", h:"19h30", c:"conf", st:"ok"},
+  {s:"2027-02-07", t:"Conferência de Carnaval — domingo", h:"10h e 18h", c:"conf", st:"tent", n:"Confirmar se serão 2 horários ou 1"},
+  {s:"2027-02-08", t:"Conferência de Carnaval — noite 3", h:"19h30", c:"conf", st:"ok"},
+  {s:"2027-02-09", t:"Conferência de Carnaval — encerramento", h:"19h30", c:"conf", st:"ok"},
+  {s:"2027-03-07", t:"Pink — especial Dia da Mulher", c:"igreja", st:"tent", n:"Domingo mais próximo do Dia da Mulher (8/mar)"},
+  {s:"2027-03-08", t:"Dia Internacional da Mulher", c:"data", st:"ok"},
+  {s:"2027-03-26", t:"Culto de Sexta-feira Santa", c:"igreja", st:"tent", n:"Horário a definir"},
+  {s:"2027-03-28", t:"Especial de Páscoa", c:"igreja", st:"ok"},
+  {s:"2027-05-09", t:"Especial Dia das Mães", c:"igreja", st:"ok"},
+  {s:"2027-06-13", t:"Dia do Pastor", c:"data", st:"ok", n:"2º domingo de junho"},
+  {s:"2027-07-26", t:"Dia dos Avós", c:"data", st:"ok"},
+  {s:"2027-05-16", t:"Culto de aniversário — Pr. Raphael e Tamires", h:"10h, 17h e 19h30", c:"igreja", st:"opt", n:"Opção A: os dois aniversários juntos, nos três horários"},
+  {s:"2027-05-19", t:"Aniversário da Tamires no Pink", c:"igreja", st:"opt", n:"Opção B (com o culto de 23/mai)"},
+  {s:"2027-05-23", t:"Culto de aniversário — Pr. Raphael", h:"10h, 17h e 19h30", c:"igreja", st:"opt", n:"Opção B (com o Pink de 19/mai)"},
+  {s:"2027-06-12", t:"Dia dos Namorados — jantar de casais/namorados (ideia)", c:"igreja", st:"tent"},
+  {s:"2027-06-18", e:"2027-06-20", t:"Aniversário da Igreja", c:"igreja", st:"opt", n:"Opção 1: 18 a 20/jun"},
+  {s:"2027-06-25", e:"2027-06-27", t:"Aniversário da Igreja", c:"igreja", st:"opt", n:"Opção 2: 25 a 27/jun"},
+  {s:"2027-08-08", t:"Especial Dia dos Pais", c:"igreja", st:"ok"},
+  {s:"2027-10-09", t:"Kids Day", c:"igreja", st:"opt", n:"Opção preferida: sábado antes do Dia das Crianças"},
+  {s:"2027-10-12", t:"Kids Day", c:"igreja", st:"opt", n:"Opção 2: no feriado de 12/out (terça)"},
+  {s:"2027-10-31", t:"Dia da Reforma Protestante", c:"data", st:"ok"},
+  {s:"2027-11-30", t:"Dia Nacional do Evangélico", c:"data", st:"ok"},
+  {s:"2027-12-12", t:"Dia da Bíblia", c:"data", st:"ok", n:"2º domingo de dezembro"},
+  {s:"2027-10-22", e:"2027-10-24", t:"Pink Conference", c:"conf", st:"opt", n:"Opção 2: 22 a 24/out (ajustar à caravana para Israel)"},
+  {s:"2027-10-29", e:"2027-10-31", t:"Pink Conference", c:"conf", st:"opt", n:"Opção 1: 29 a 31/out (último fim de semana)"},
+  {s:"2027-12-19", t:"Especial de Natal", c:"natal", st:"ok"},
+  {s:"2027-12-22", t:"Culto de quarta (normal)", c:"natal", st:"ok"},
+  {s:"2027-12-26", t:"Culto de domingo (normal)", c:"natal", st:"ok"},
+  {s:"2027-12-31", t:"Viradão 2027 → 2028", h:"sexta para sábado", c:"natal", st:"ok"}
+];
+
+// ---------- Datas ----------
+const pad = n => String(n).padStart(2,"0");
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parse = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y,m-1,d); };
+const fmt = s => { const d = parse(s); return `${pad(d.getDate())}/${pad(d.getMonth()+1)} (${DSEM[d.getDay()]})`; };
+function nthWeekday(y,m,wd,n){ const d=new Date(y,m,1); let c=0; while(true){ if(d.getDay()===wd){ c++; if(c===n) return new Date(d);} d.setDate(d.getDate()+1);} }
+
+// Recorrências
+for(let m=1;m<12;m++){ // fev..dez
+  // Café dos pastores: 3ª terça, 9h
+  const cafe = iso(nthWeekday(YEAR,m,2,3));
+  const fc = FERIADOS[cafe];
+  BASE.push({s:cafe, t:"Café dos pastores", h:"9h", c:"pastores", st: fc?"susp":"ok", n: fc?`Feriado (${fc}) — suspenso, reorganizar`:""});
+  // Reunião do time: 2ª segunda (fevereiro excepcional em 01/fev)
+  let reun, nota="";
+  if(m===1){ reun = `${YEAR}-02-01`; nota = "Excepcional: 2ª segunda (08/fev) é Carnaval"; }
+  else reun = iso(nthWeekday(YEAR,m,1,2));
+  const fr = FERIADOS[reun];
+  BASE.push({s:reun, t:"Reunião do time ministerial", h:"19h30 às 22h", c:"time", st: fr?"susp":"ok", n: fr?`Feriado (${fr}) — suspensa, reorganizar`:nota});
+}
+
+Object.entries(FERIADOS).forEach(([k,v])=>BASE.push({s:k, t:v, c:"feriado", st:"ok"}));
+
+function expand(ev){ const out=[]; const a=parse(ev.s), b=parse(ev.e||ev.s); for(let d=new Date(a); d<=b; d.setDate(d.getDate()+1)) out.push(iso(d)); return out; }
+function rangeLabel(ev){ if(!ev.e||ev.e===ev.s) return fmt(ev.s); const a=parse(ev.s), b=parse(ev.e); return `${pad(a.getDate())}/${pad(a.getMonth()+1)} a ${pad(b.getDate())}/${pad(b.getMonth()+1)}`; }
+function stTag(st){ return st==="tent"?'<span class="tag tent">a confirmar</span>':st==="opt"?'<span class="tag opt">opção</span>':st==="susp"?'<span class="tag susp">suspenso</span>':""; }
+const esc = s => String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+// ---------- Estado ----------
+let leaderEvents = []; // do painel (dono)
+let showOverlay = false;
+function allEvents(){ return showOverlay ? BASE.concat(leaderEvents) : BASE; }
+function byDay(evts){ const map={}; evts.forEach(ev=>expand(ev).forEach(d=>{ (map[d]=map[d]||[]).push(ev); })); return map; }
+
+// ---------- Calendário ----------
+function renderLegend(){
+  const keys = Object.keys(CATS).filter(k=>k!=="lider"||showOverlay);
+  document.getElementById("legend").innerHTML = keys.map(k=>`<span><i class="dot" style="background:${CATS[k].cor}"></i>${CATS[k].nome}</span>`).join("")
+    + `<span><b style="color:var(--hol)">12</b> feriado</span><span><i class="dot" style="background:#999;opacity:.45"></i>a confirmar / opção</span>`;
+}
+function renderCalendar(){
+  renderLegend();
+  const evts = allEvents(); const map = byDay(evts);
+  const box = document.getElementById("months"); box.innerHTML="";
+  for(let m=0;m<12;m++){
+    const first = new Date(YEAR,m,1), days = new Date(YEAR,m+1,0).getDate();
+    let g = DSEM.map(x=>`<div class="h">${x[0].toUpperCase()}</div>`).join("");
+    for(let i=0;i<first.getDay();i++) g+=`<div class="day empty"></div>`;
+    for(let d=1; d<=days; d++){
+      const k = `${YEAR}-${pad(m+1)}-${pad(d)}`; const wd = new Date(YEAR,m,d).getDay();
+      const evs = map[k]||[];
+      const bars = evs.slice(0,4).map(e=>`<i class="${e.st==="tent"||e.st==="opt"||e.st==="susp"?"tent":""}" style="background:${CATS[e.c].cor}"></i>`).join("");
+      g+=`<div class="day ${wd===0?"sun":""} ${FERIADOS[k]?"hol":""}" data-d="${k}" title="${esc(FERIADOS[k]||"")}"><span class="n">${d}</span><div class="bars">${bars}</div></div>`;
+    }
+    const monthEvs = evts.filter(e=>{ const ds=expand(e); return ds.some(x=>parse(x).getMonth()===m); }).sort((a,b)=>a.s.localeCompare(b.s));
+    const hols = Object.entries(FERIADOS).filter(([k])=>parse(k).getMonth()===m);
+    const list = monthEvs.length ? `<ul class="evlist">${monthEvs.map(e=>`<li><span class="dot" style="background:${CATS[e.c].cor};margin-top:5px"></span><span class="d">${rangeLabel(e).replace(/ \(.*\)/,"")}</span><span class="t"><b>${esc(e.t)}</b>${stTag(e.st)}${e.lid?`<span class="tag lid">${esc(e.lid)}</span>`:""}${(e.h||e.n)?`<span class="meta">${[e.h,e.n].filter(Boolean).map(esc).join(" · ")}</span>`:""}</span></li>`).join("")}</ul>` : `<div class="empty-month">Nenhuma programação geral por enquanto.</div>`;
+    const holTxt = hols.length ? `<small>Feriados: ${hols.map(([k,v])=>`${parse(k).getDate()} ${v.replace(/ \(.*\)/,"")}`).join(", ")}</small>` : "";
+    box.insertAdjacentHTML("beforeend", `<article class="month"><h2>${MESES[m]}</h2><div class="grid">${g}</div>${list}</article>`);
+  }
+}
+document.getElementById("months").addEventListener("click", e=>{
+  const el = e.target.closest(".day[data-d]"); if(!el) return;
+  document.querySelectorAll(".day.sel").forEach(x=>x.classList.remove("sel")); el.classList.add("sel");
+  const k = el.dataset.d; const evs = byDay(allEvents())[k]||[];
+  document.getElementById("dTitle").textContent = `${fmt(k)} de ${MESES[parse(k).getMonth()].toLowerCase()}`;
+  let html = "";
+  html += evs.length ? `<ul class="sublist">${evs.map(ev=>`<li><b>${esc(ev.t)}</b>${stTag(ev.st)}${ev.lid?` <span class="tag lid">${esc(ev.lid)}</span>`:""}${ev.h?` — ${esc(ev.h)}`:""}${ev.n?`<br><span class="status">${esc(ev.n)}</span>`:""}</li>`).join("")}</ul>` : `<span class="status">Dia livre na agenda geral.</span>`;
+  document.getElementById("dBody").innerHTML = html;
+  document.getElementById("detail").classList.add("show");
+});
+document.getElementById("dClose").onclick = ()=>{ document.getElementById("detail").classList.remove("show"); document.querySelectorAll(".day.sel").forEach(x=>x.classList.remove("sel")); };
+
+// ---------- Lista ----------
+const activeCats = new Set(Object.keys(CATS));
+function renderList(){
+  const evts = allEvents();
+  const keys = Object.keys(CATS).filter(k=>k!=="lider"||showOverlay);
+  document.getElementById("filters").innerHTML = keys.map(k=>`<button type="button" class="chip ${activeCats.has(k)?"":"off"}" data-c="${k}"><i class="dot" style="background:${CATS[k].cor}"></i>${CATS[k].nome}</button>`).join("");
+  const rows = evts.filter(e=>activeCats.has(e.c)).sort((a,b)=>a.s.localeCompare(b.s)||a.t.localeCompare(b.t));
+  document.querySelector("#table tbody").innerHTML = rows.map(e=>{
+    const sit = e.st==="tent"?"A confirmar":e.st==="opt"?"Opção":e.st==="susp"?"Suspenso":"Definido";
+    return `<tr><td style="white-space:nowrap">${rangeLabel(e)}</td><td><span class="dot" style="background:${CATS[e.c].cor}"></span> <b>${esc(e.t)}</b>${e.lid?` <span class="tag lid">${esc(e.lid)}</span>`:""}${e.n?`<br><span class="status">${esc(e.n)}</span>`:""}</td><td>${esc(e.h||"")}</td><td>${sit}</td></tr>`;
+  }).join("");
+}
+document.getElementById("filters").addEventListener("click", e=>{ const b=e.target.closest(".chip"); if(!b) return; const c=b.dataset.c; activeCats.has(c)?activeCats.delete(c):activeCats.add(c); renderList(); });
+
+// ---------- Abas ----------
+document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click", ()=>{
+  document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on", x===b));
+  ["cal","lista","enviar","painel"].forEach(t=>document.getElementById("tab-"+t).classList.toggle("hidden", t!==b.dataset.tab));
+  document.getElementById("detail").classList.remove("show");
+  if(b.dataset.tab==="lista") renderList();
+  window.scrollTo({top:0});
+}));
+
+// ---------- Formulário do líder ----------
+let items = [];
+const DRAFT_KEY = "agenda-nc-2027-rascunho";
+function blank(){ return {s:"", e:"", t:"", h:"", n:""}; }
+function loadDraft(){ try{ const d = JSON.parse(localStorage.getItem(DRAFT_KEY)||"null"); if(d){ document.getElementById("fLider").value=d.lider||""; document.getElementById("fMin").value=d.min||""; items = Array.isArray(d.items)&&d.items.length?d.items:[blank()]; return; } }catch(e){} items=[blank()]; }
+function saveDraft(){ try{ localStorage.setItem(DRAFT_KEY, JSON.stringify({lider:fLider.value, min:fMin.value, items})); }catch(e){} }
+const fLider = document.getElementById("fLider"), fMin = document.getElementById("fMin");
+
+function conflicts(it){
+  if(!it.s) return "";
+  const ds = expand({s:it.s, e:(it.e && it.e>=it.s)?it.e:it.s}); const map = byDay(BASE.filter(x=>x.c!=="feriado")); const found=[];
+  ds.forEach(d=>{ if(FERIADOS[d]) found.push(`${fmt(d)}: feriado (${FERIADOS[d]})`); (map[d]||[]).forEach(ev=>found.push(`${fmt(d)}: ${ev.t}${ev.st==="opt"?" (opção)":ev.st==="tent"?" (a confirmar)":""}`)); });
+  return [...new Set(found)].slice(0,4).join(" · ");
+}
+function renderItems(){
+  const box = document.getElementById("items");
+  box.innerHTML = items.map((it,i)=>{
+    const c = conflicts(it);
+    return `<div class="item" data-i="${i}">
+      <div class="top"><span>Programação ${i+1}</span>${items.length>1?`<button class="btn ghost" type="button" data-rm="${i}">Remover</button>`:""}</div>
+      <div class="grid4">
+        <div><label>Data</label><input type="date" min="${YEAR}-01-01" max="${YEAR}-12-31" data-f="s" value="${esc(it.s)}"></div>
+        <div><label>Até (opcional)</label><input type="date" min="${YEAR}-01-01" max="${YEAR}-12-31" data-f="e" value="${esc(it.e)}"></div>
+        <div><label>O que vai acontecer</label><input data-f="t" placeholder="Ex.: Retiro de jovens" value="${esc(it.t)}"></div>
+        <div><label>Horário</label><input data-f="h" placeholder="19h30" value="${esc(it.h)}"></div>
+      </div>
+      <div style="margin-top:8px"><label>Detalhes (local, público, se a data é flexível…)</label><textarea data-f="n" rows="2">${esc(it.n)}</textarea></div>
+      <div class="hint" data-hint>${c?`Atenção — já existe na agenda: ${esc(c)}`:""}</div>
+    </div>`;
+  }).join("");
+  updateWa();
+}
+document.getElementById("items").addEventListener("input", e=>{
+  const f = e.target.dataset.f; if(!f) return; const card = e.target.closest(".item"); const i = +card.dataset.i;
+  items[i][f] = e.target.value; saveDraft(); updateWa();
+  if(f==="s"||f==="e"){ const c = conflicts(items[i]); card.querySelector("[data-hint]").textContent = c?`Atenção — já existe na agenda: ${c}`:""; }
+});
+document.getElementById("items").addEventListener("click", e=>{ const rm = e.target.dataset.rm; if(rm===undefined) return; items.splice(+rm,1); saveDraft(); renderItems(); });
+document.getElementById("addItem").onclick = ()=>{ items.push(blank()); saveDraft(); renderItems(); };
+[fLider,fMin].forEach(x=>x.addEventListener("input", ()=>{ saveDraft(); updateWa(); }));
+
+function validItems(){ return items.filter(it=>it.t.trim()||it.s); }
+function textFor(lider, min, list){
+  const lines = [`*AGENDA NC CAXIAS 2027 — Programação ministerial*`, `Ministério: ${min||"(não informado)"}`, `Líder: ${lider||"(não informado)"}`, ""];
+  list.slice().sort((a,b)=>(a.s||"9").localeCompare(b.s||"9")).forEach((it,i)=>{
+    const quando = it.s ? (it.e && it.e>it.s ? `${fmt(it.s)} a ${fmt(it.e)}` : fmt(it.s)) : "data a definir";
+    lines.push(`${i+1}) ${quando} — ${it.t||"(sem título)"}${it.h?` — ${it.h}`:""}${it.n?`\n   ${it.n}`:""}`);
+  });
+  return lines.join("\n");
+}
+function updateWa(){
+  const txt = textFor(fLider.value.trim(), fMin.value.trim(), validItems());
+  document.getElementById("btnWa").href = "https://wa.me/5521980321537?text=" + encodeURIComponent(txt);
+}
+document.getElementById("btnWa").addEventListener("click", e=>{
+  if(!validItems().length){ e.preventDefault(); setStatus("Adicione pelo menos uma programação."); }
+});
+document.getElementById("btnCopy").onclick = async ()=>{
+  if(!validItems().length){ setStatus("Adicione pelo menos uma programação."); return; }
+  try{ await navigator.clipboard.writeText(textFor(fLider.value.trim(), fMin.value.trim(), validItems())); setStatus("Texto copiado. Agora é só colar na conversa com o pastor."); }
+  catch(err){ setStatus("Não consegui copiar automaticamente. Use o botão do WhatsApp."); }
+};
+function setStatus(t){ document.getElementById("status").textContent = t; }
+
+// ---------- Envio online (quando disponível) ----------
+let db = null, myId = null, canWrite = false;
+async function initOnline(){
+  try{
+    const user = await claude.use("user");
+    db = await claude.use("db");
+    if(!db || !user) return;
+    myId = await user.id();
+    const isOwner = user.isOwner ? user.isOwner() : false;
+    const w = user.can ? user.can("data.write") : null;
+    canWrite = !!myId && w !== false;
+    if(canWrite){
+      document.getElementById("btnSave").classList.remove("hidden");
+      document.getElementById("sendInfo").textContent = "Quando terminar, toque em “Salvar e enviar ao pastor”. Só o pastor vê o que você enviar; você pode voltar aqui e editar depois. Se preferir, também pode mandar pelo WhatsApp.";
+      // carregar o próprio envio
+      const snap = await db.doc("envios/"+myId).get();
+      if(snap.exists){ const d = snap.data(); fLider.value = d.lider||""; fMin.value = d.ministerio||""; items = (Array.isArray(d.itens)&&d.itens.length)?d.itens.map(x=>({s:x.s||"",e:x.e||"",t:x.t||"",h:x.h||"",n:x.n||""})):[blank()]; renderItems(); setStatus("Seu envio anterior foi carregado. Pode editar e salvar de novo."); }
+    }
+    if(isOwner) initOwner();
+  }catch(err){ /* segue só com WhatsApp */ }
+}
+document.getElementById("btnSave").onclick = async ()=>{
+  const list = validItems();
+  if(!fMin.value.trim()){ setStatus("Informe o ministério."); return; }
+  if(!list.length){ setStatus("Adicione pelo menos uma programação."); return; }
+  const btn = document.getElementById("btnSave"); btn.disabled = true; setStatus("Salvando…");
+  try{
+    await db.doc("envios/"+myId).set({ lider: fLider.value.trim().slice(0,80), ministerio: fMin.value.trim().slice(0,80), itens: list.slice(0,80).map(it=>({s:it.s,e:it.e,t:it.t.slice(0,140),h:it.h.slice(0,40),n:it.n.slice(0,600)})), atualizadoEm: new Date().toISOString() });
+    setStatus("Enviado! O pastor já consegue ver. Você pode editar e salvar de novo quando quiser.");
+  }catch(err){
+    if(err && err.code==="invalid_argument"){ btn.classList.add("hidden"); setStatus("Não foi possível salvar online com o seu acesso. Use o botão do WhatsApp."); }
+    else setStatus("Não foi possível salvar agora. Tente de novo ou use o WhatsApp.");
+  }finally{ btn.disabled = false; }
+};
+
+// ---------- Painel do pastor ----------
+let envios = [];
+function initOwner(){
+  document.getElementById("navPainel").classList.remove("hidden");
+  document.getElementById("overlayWrap").classList.remove("hidden");
+  const st = document.getElementById("painelStatus"); st.textContent = "Carregando envios…";
+  const timer = setTimeout(()=>{ st.textContent = "Os envios ainda não carregaram. Verifique a conexão."; }, 10000);
+  db.collection("envios").onSnapshot(snap=>{
+    if(!snap.metadata.fromCache) clearTimeout(timer);
+    envios = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    st.textContent = envios.length ? `${envios.length} ministério(s) enviaram até agora.` : "Nenhum líder enviou ainda.";
+    leaderEvents = [];
+    envios.forEach(en=>(en.itens||[]).forEach(it=>{ if(it.s) leaderEvents.push({s:it.s, e:(it.e&&it.e>=it.s)?it.e:"", t:it.t||"(sem título)", h:it.h, n:it.n, c:"lider", st:"tent", lid:en.ministerio||en.lider}); }));
+    renderPainel(); if(showOverlay){ renderCalendar(); renderList(); }
+  }, err=>{ clearTimeout(timer); st.textContent = "Não foi possível carregar os envios."; });
+}
+function renderPainel(){
+  const box = document.getElementById("painelList");
+  box.innerHTML = envios.slice().sort((a,b)=>(a.ministerio||"").localeCompare(b.ministerio||"")).map(en=>{
+    const its = (en.itens||[]).slice().sort((a,b)=>(a.s||"9").localeCompare(b.s||"9"));
+    return `<div class="ministry"><h4>${esc(en.ministerio||"Ministério")} <span class="status">— ${esc(en.lider||"")}${en.atualizadoEm?` · atualizado em ${new Date(en.atualizadoEm).toLocaleDateString("pt-BR")}`:""}</span></h4>
+      <table><tbody>${its.map(it=>{ const c = conflicts(it); return `<tr><td style="white-space:nowrap;width:150px">${it.s?(it.e&&it.e>it.s?`${fmt(it.s)} a ${fmt(it.e)}`:fmt(it.s)):"a definir"}</td><td><b>${esc(it.t)}</b>${it.h?` — ${esc(it.h)}`:""}${it.n?`<br><span class="status">${esc(it.n)}</span>`:""}${c?`<br><span class="hint" style="color:#8a5a00;font-size:12.5px">Choque: ${esc(c)}</span>`:""}</td></tr>`; }).join("")}</tbody></table></div>`;
+  }).join("");
+}
+document.getElementById("btnCopyAll").onclick = async ()=>{
+  const txt = envios.map(en=>textFor(en.lider, en.ministerio, en.itens||[])).join("\n\n----------\n\n");
+  try{ await navigator.clipboard.writeText(txt||"Nenhum envio."); document.getElementById("copyAllStatus").textContent = "Copiado."; }catch(e){ document.getElementById("copyAllStatus").textContent = "Não consegui copiar."; }
+};
+document.getElementById("overlay").addEventListener("change", e=>{ showOverlay = e.target.checked; if(showOverlay) activeCats.add("lider"); renderCalendar(); renderList(); });
+
+// ---------- Início ----------
+renderCalendar();
+loadDraft(); renderItems();
+if(window.claude && typeof claude.use === "function") initOnline();
+</script>
+</body>
+</html>
