@@ -400,39 +400,33 @@ document.getElementById("btnCopy").onclick = async ()=>{
 };
 function setStatus(t){ document.getElementById("status").textContent = t; }
 
-// ---------- Envio online (quando disponível) ----------
-let db = null, myId = null, canWrite = false;
-async function initOnline(){
-  try{
-    const user = await claude.use("user");
-    db = await claude.use("db");
-    if(!db || !user) return;
-    myId = await user.id();
-    const isOwner = user.isOwner ? user.isOwner() : false;
-    const w = user.can ? user.can("data.write") : null;
-    canWrite = !!myId && w !== false;
-    if(canWrite){
-      document.getElementById("btnSave").classList.remove("hidden");
-      document.getElementById("sendInfo").textContent = "Quando terminar, toque em “Salvar e enviar ao pastor”. Só o pastor vê o que você enviar; você pode voltar aqui e editar depois. Se preferir, também pode mandar pelo WhatsApp.";
-      // carregar o próprio envio
-      const snap = await db.doc("envios/"+myId).get();
-      if(snap.exists){ const d = snap.data(); fLider.value = d.lider||""; fMin.value = d.ministerio||""; items = (Array.isArray(d.itens)&&d.itens.length)?d.itens.map(x=>({s:x.s||"",e:x.e||"",t:x.t||"",h:x.h||"",n:x.n||""})):[blank()]; renderItems(); setStatus("Seu envio anterior foi carregado. Pode editar e salvar de novo."); }
-    }
-    if(isOwner) initOwner();
-  }catch(err){ /* segue só com WhatsApp */ }
+// ---------- Envio para a planilha do pastor ----------
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwnOY2AF7-B039Gx5Jy5xR5bVBY-gDzL5ilByrx62OzXjXJ1mnLL022SGMsD7HYqvfCMA/exec"; // URL do App da Web do Google Apps Script
+const ID_KEY = "agenda-nc-2027-envio-id";
+function envioId(){
+  try{ let id = localStorage.getItem(ID_KEY); if(!id){ id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())+Math.random().toString(36).slice(2)); localStorage.setItem(ID_KEY,id); } return id; }
+  catch(e){ return String(Date.now())+Math.random().toString(36).slice(2); }
+}
+if(SCRIPT_URL){
+  const b = document.getElementById("btnSave"); b.classList.remove("hidden"); b.textContent = "Enviar ao pastor";
+  document.getElementById("btnWa").classList.add("alt"); document.getElementById("btnWa").classList.remove("wa");
+  document.getElementById("btnWa").textContent = "Enviar pelo WhatsApp (opcional)";
+  document.getElementById("sendInfo").textContent = "Quando terminar, toque em “Enviar ao pastor”. Só o pastor recebe o que você enviar. Se precisar corrigir, é só voltar aqui (no mesmo celular), ajustar e enviar de novo: o envio novo substitui o anterior.";
 }
 document.getElementById("btnSave").onclick = async ()=>{
   const list = validItems();
   if(!fMin.value.trim()){ setStatus("Informe o ministério."); return; }
+  if(!fLider.value.trim()){ setStatus("Informe o seu nome."); return; }
   if(!list.length){ setStatus("Adicione pelo menos uma programação."); return; }
-  const btn = document.getElementById("btnSave"); btn.disabled = true; setStatus("Salvando…");
+  const btn = document.getElementById("btnSave"); btn.disabled = true; setStatus("Enviando…");
+  const payload = { envioId: envioId(), lider: fLider.value.trim(), ministerio: fMin.value.trim(), itens: list.map(it=>({s:it.s,e:it.e,t:it.t,h:it.h,n:it.n})) };
   try{
-    await db.doc("envios/"+myId).set({ lider: fLider.value.trim().slice(0,80), ministerio: fMin.value.trim().slice(0,80), itens: list.slice(0,80).map(it=>({s:it.s,e:it.e,t:it.t.slice(0,140),h:it.h.slice(0,40),n:it.n.slice(0,600)})), atualizadoEm: new Date().toISOString() });
-    setStatus("Enviado! O pastor já consegue ver. Você pode editar e salvar de novo quando quiser.");
-  }catch(err){
-    if(err && err.code==="invalid_argument"){ btn.classList.add("hidden"); setStatus("Não foi possível salvar online com o seu acesso. Use o botão do WhatsApp."); }
-    else setStatus("Não foi possível salvar agora. Tente de novo ou use o WhatsApp.");
-  }finally{ btn.disabled = false; }
+    const r = await fetch(SCRIPT_URL, { method:"POST", body: JSON.stringify(payload) });
+    const j = await r.json();
+    if(j && j.ok) setStatus("Enviado! O pastor já recebeu a sua programação. Obrigado!");
+    else setStatus("Não foi possível enviar agora. Tente de novo ou use o WhatsApp.");
+  }catch(err){ setStatus("Não foi possível enviar agora. Verifique a internet e tente de novo, ou use o WhatsApp."); }
+  finally{ btn.disabled = false; }
 };
 
 // ---------- Painel do pastor ----------
@@ -468,7 +462,6 @@ document.getElementById("overlay").addEventListener("change", e=>{ showOverlay =
 // ---------- Início ----------
 renderCalendar();
 loadDraft(); renderItems();
-if(window.claude && typeof claude.use === "function") initOnline();
 </script>
 </body>
 </html>
