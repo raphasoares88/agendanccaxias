@@ -438,13 +438,21 @@ document.getElementById("btnSave").onclick = async ()=>{
 };
 
 // ---------- Agenda aprovada (pública) ----------
-function toEvent(it, c, st){ return {s:it.s, e:(it.e&&it.e>=it.s)?it.e:"", t:it.t||"(sem título)", h:it.h||"", n:it.n||"", c, st, lid:it.m||it.ministerio||""}; }
+function normDate(v){
+  v = String(v||"").trim(); if(!v) return "";
+  if(/^\d{4}-\d{2}-\d{2}/.test(v)) return v.slice(0,10);
+  const m = v.match(/^(\d{1,2})[\/.\-](\d{1,2})(?:[\/.\-](\d{2,4}))?$/);
+  if(m){ const y = m[3] ? (m[3].length===2 ? "20"+m[3] : m[3]) : String(YEAR); return `${y}-${pad(+m[2])}-${pad(+m[1])}`; }
+  const d = new Date(v); if(!isNaN(d) && d.getFullYear()>=2026) return iso(d);
+  return "";
+}
+function toEvent(it0, c, st){ const it = Object.assign({}, it0, {s:normDate(it0.s), e:normDate(it0.e)}); return {s:it.s, e:(it.e&&it.e>=it.s)?it.e:"", t:it.t||"(sem título)", h:it.h||"", n:it.n||"", c, st, lid:it.m||it.ministerio||""}; }
 async function loadApproved(){
   if(!SCRIPT_URL) return;
   const ctrl = new AbortController(); const timer = setTimeout(()=>ctrl.abort(), 12000);
   try{
     const r = await fetch(SCRIPT_URL+"?modo=publico", {signal: ctrl.signal}); const j = await r.json();
-    if(j && j.ok && Array.isArray(j.itens)){ approvedEvents = j.itens.filter(it=>/^\d{4}-\d{2}-\d{2}$/.test(it.s||"")).map(it=>toEvent(it,"lider","ok")); activeCats.add("lider"); renderCalendar(); renderList(); renderItems(); }
+    if(j && j.ok && Array.isArray(j.itens)){ approvedEvents = j.itens.map(it=>toEvent(it,"lider","ok")).filter(ev=>ev.s); activeCats.add("lider"); renderCalendar(); renderList(); renderItems(); }
   }catch(e){
     const p = document.getElementById("pubStatus"); p.textContent = "Não foi possível carregar as programações dos ministérios agora. Atualize a página em instantes."; p.classList.remove("hidden");
   }finally{ clearTimeout(timer); }
@@ -469,7 +477,8 @@ async function loadReview(){
     if(!j.ok){ setKey(""); document.getElementById("keyBox").classList.remove("hidden"); st.textContent = "Chave incorreta. Digite de novo."; return; }
     document.getElementById("keyBox").classList.add("hidden");
     envios = j.envios||[]; planilhaUrl = j.planilha||"";
-    pendingEvents = envios.filter(x=>!x.aprovado && /^\d{4}-\d{2}-\d{2}$/.test(x.s||"")).map(x=>toEvent(x,"pendente","tent"));
+    envios = envios.map(x=>Object.assign({}, x, {s:normDate(x.s), e:normDate(x.e)}));
+    pendingEvents = envios.filter(x=>!x.aprovado && x.s).map(x=>toEvent(x,"pendente","tent"));
     showOverlay = true; activeCats.add("pendente");
     document.getElementById("overlayWrap").classList.remove("hidden");
     renderReview(); renderCalendar(); renderList();
