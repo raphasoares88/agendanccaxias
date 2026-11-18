@@ -116,14 +116,15 @@ textarea{resize:vertical;min-height:40px}
     <button data-tab="cal" class="on">Calendário</button>
     <button data-tab="lista">Lista do ano</button>
     <button data-tab="enviar">Enviar minha programação</button>
-    <button data-tab="painel" id="navPainel" class="hidden">Painel do pastor</button>
+    <button data-tab="painel" id="navPainel" class="hidden">Revisão do pastor</button>
   </div>
 </nav>
 <main class="wrap">
 
   <section id="tab-cal">
     <div class="legend" id="legend"></div>
-    <label class="toggle hidden" id="overlayWrap"><input type="checkbox" id="overlay"> Mostrar no calendário as programações enviadas pelos líderes</label>
+    <div class="note info hidden" id="pubStatus"></div>
+    <label class="toggle hidden" id="overlayWrap"><input type="checkbox" id="overlay" checked> Mostrar no calendário as programações aguardando aprovação</label>
     <div class="months" id="months"></div>
   </section>
 
@@ -159,11 +160,15 @@ textarea{resize:vertical;min-height:40px}
 
   <section id="tab-painel" class="hidden">
     <div class="panel">
-      <h3>Programações recebidas</h3>
-      <p class="sub">Só você vê esta área. Cada líder vê apenas o que ele próprio enviou.</p>
-      <div id="painelStatus" class="status"></div>
+      <h3>Revisão do pastor</h3>
+      <p class="sub">Programações enviadas pelos líderes que ainda aguardam aprovação. Para aprovar, marque a caixinha “Aprovado” na planilha: a programação entra na agenda geral na hora.</p>
+      <div id="keyBox" class="hidden">
+        <label for="fChave">Chave de acesso (só na primeira vez neste aparelho)</label>
+        <div style="display:flex;gap:8px"><input id="fChave" type="password" autocomplete="off"><button class="btn" id="btnChave" type="button">Entrar</button></div>
+      </div>
+      <div id="painelStatus" class="status" style="margin:8px 0"></div>
+      <div class="actions" id="painelActions" style="margin:0 0 12px"></div>
       <div id="painelList"></div>
-      <div class="actions"><button class="btn alt" id="btnCopyAll" type="button">Copiar tudo em texto</button><span class="status" id="copyAllStatus"></span></div>
     </div>
   </section>
 </main>
@@ -184,7 +189,8 @@ const CATS = {
   time:{nome:"Reunião do time ministerial", cor:"var(--c-time)"},
   data:{nome:"Datas comemorativas", cor:"var(--c-data)"},
   feriado:{nome:"Feriados", cor:"var(--hol)"},
-  lider:{nome:"Enviado por líderes", cor:"var(--c-lider)"}
+  lider:{nome:"Programações dos ministérios", cor:"var(--c-lider)"},
+  pendente:{nome:"Aguardando aprovação", cor:"#e0a100"}
 };
 
 // Feriados 2027 (nacionais, RJ e Duque de Caxias) — conferir municipais
@@ -269,14 +275,16 @@ function stTag(st){ return st==="tent"?'<span class="tag tent">a confirmar</span
 const esc = s => String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
 // ---------- Estado ----------
-let leaderEvents = []; // do painel (dono)
+let approvedEvents = []; // aprovados (todos veem)
+let pendingEvents = [];  // aguardando (só na revisão)
 let showOverlay = false;
-function allEvents(){ return showOverlay ? BASE.concat(leaderEvents) : BASE; }
+function allEvents(){ return BASE.concat(approvedEvents, showOverlay ? pendingEvents : []); }
 function byDay(evts){ const map={}; evts.forEach(ev=>expand(ev).forEach(d=>{ (map[d]=map[d]||[]).push(ev); })); return map; }
 
 // ---------- Calendário ----------
+function legendKeys(){ return Object.keys(CATS).filter(k=>(k!=="lider"||approvedEvents.length)&&(k!=="pendente"||showOverlay)); }
 function renderLegend(){
-  const keys = Object.keys(CATS).filter(k=>k!=="lider"||showOverlay);
+  const keys = legendKeys();
   document.getElementById("legend").innerHTML = keys.map(k=>`<span><i class="dot" style="background:${CATS[k].cor}"></i>${CATS[k].nome}</span>`).join("")
     + `<span><b style="color:var(--hol)">12</b> feriado</span><span><i class="dot" style="background:#999;opacity:.45"></i>a confirmar / opção</span>`;
 }
@@ -317,7 +325,7 @@ document.getElementById("dClose").onclick = ()=>{ document.getElementById("detai
 const activeCats = new Set(Object.keys(CATS));
 function renderList(){
   const evts = allEvents();
-  const keys = Object.keys(CATS).filter(k=>k!=="lider"||showOverlay);
+  const keys = legendKeys();
   document.getElementById("filters").innerHTML = keys.map(k=>`<button type="button" class="chip ${activeCats.has(k)?"":"off"}" data-c="${k}"><i class="dot" style="background:${CATS[k].cor}"></i>${CATS[k].nome}</button>`).join("");
   const rows = evts.filter(e=>activeCats.has(e.c)).sort((a,b)=>a.s.localeCompare(b.s)||a.t.localeCompare(b.t));
   document.querySelector("#table tbody").innerHTML = rows.map(e=>{
@@ -346,7 +354,7 @@ const fLider = document.getElementById("fLider"), fMin = document.getElementById
 
 function conflicts(it){
   if(!it.s) return "";
-  const ds = expand({s:it.s, e:(it.e && it.e>=it.s)?it.e:it.s}); const map = byDay(BASE.filter(x=>x.c!=="feriado")); const found=[];
+  const ds = expand({s:it.s, e:(it.e && it.e>=it.s)?it.e:it.s}); const map = byDay(BASE.filter(x=>x.c!=="feriado").concat(approvedEvents)); const found=[];
   ds.forEach(d=>{ if(FERIADOS[d]) found.push(`${fmt(d)}: feriado (${FERIADOS[d]})`); (map[d]||[]).forEach(ev=>found.push(`${fmt(d)}: ${ev.t}${ev.st==="opt"?" (opção)":ev.st==="tent"?" (a confirmar)":""}`)); });
   return [...new Set(found)].slice(0,4).join(" · ");
 }
@@ -429,39 +437,66 @@ document.getElementById("btnSave").onclick = async ()=>{
   finally{ btn.disabled = false; }
 };
 
-// ---------- Painel do pastor ----------
-let envios = [];
-function initOwner(){
+// ---------- Agenda aprovada (pública) ----------
+function toEvent(it, c, st){ return {s:it.s, e:(it.e&&it.e>=it.s)?it.e:"", t:it.t||"(sem título)", h:it.h||"", n:it.n||"", c, st, lid:it.m||it.ministerio||""}; }
+async function loadApproved(){
+  if(!SCRIPT_URL) return;
+  const ctrl = new AbortController(); const timer = setTimeout(()=>ctrl.abort(), 12000);
+  try{
+    const r = await fetch(SCRIPT_URL+"?modo=publico", {signal: ctrl.signal}); const j = await r.json();
+    if(j && j.ok && Array.isArray(j.itens)){ approvedEvents = j.itens.filter(it=>/^\d{4}-\d{2}-\d{2}$/.test(it.s||"")).map(it=>toEvent(it,"lider","ok")); activeCats.add("lider"); renderCalendar(); renderList(); renderItems(); }
+  }catch(e){
+    const p = document.getElementById("pubStatus"); p.textContent = "Não foi possível carregar as programações dos ministérios agora. Atualize a página em instantes."; p.classList.remove("hidden");
+  }finally{ clearTimeout(timer); }
+}
+
+// ---------- Revisão do pastor (#revisao) ----------
+const KEY_KEY = "agenda-nc-2027-chave";
+let envios = [], planilhaUrl = "";
+function getKey(){ try{ return localStorage.getItem(KEY_KEY)||""; }catch(e){ return ""; } }
+function setKey(k){ try{ k ? localStorage.setItem(KEY_KEY,k) : localStorage.removeItem(KEY_KEY); }catch(e){} }
+function initReview(){
   document.getElementById("navPainel").classList.remove("hidden");
-  document.getElementById("overlayWrap").classList.remove("hidden");
+  document.getElementById("navPainel").click();
+  if(getKey()) loadReview(); else document.getElementById("keyBox").classList.remove("hidden");
+}
+document.getElementById("btnChave").onclick = ()=>{ const k = document.getElementById("fChave").value.trim(); if(!k) return; setKey(k); loadReview(); };
+async function loadReview(){
   const st = document.getElementById("painelStatus"); st.textContent = "Carregando envios…";
-  const timer = setTimeout(()=>{ st.textContent = "Os envios ainda não carregaram. Verifique a conexão."; }, 10000);
-  db.collection("envios").onSnapshot(snap=>{
-    if(!snap.metadata.fromCache) clearTimeout(timer);
-    envios = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    st.textContent = envios.length ? `${envios.length} ministério(s) enviaram até agora.` : "Nenhum líder enviou ainda.";
-    leaderEvents = [];
-    envios.forEach(en=>(en.itens||[]).forEach(it=>{ if(it.s) leaderEvents.push({s:it.s, e:(it.e&&it.e>=it.s)?it.e:"", t:it.t||"(sem título)", h:it.h, n:it.n, c:"lider", st:"tent", lid:en.ministerio||en.lider}); }));
-    renderPainel(); if(showOverlay){ renderCalendar(); renderList(); }
-  }, err=>{ clearTimeout(timer); st.textContent = "Não foi possível carregar os envios."; });
+  const ctrl = new AbortController(); const timer = setTimeout(()=>ctrl.abort(), 15000);
+  try{
+    const r = await fetch(SCRIPT_URL+"?chave="+encodeURIComponent(getKey()), {signal: ctrl.signal}); const j = await r.json();
+    if(!j.ok){ setKey(""); document.getElementById("keyBox").classList.remove("hidden"); st.textContent = "Chave incorreta. Digite de novo."; return; }
+    document.getElementById("keyBox").classList.add("hidden");
+    envios = j.envios||[]; planilhaUrl = j.planilha||"";
+    pendingEvents = envios.filter(x=>!x.aprovado && /^\d{4}-\d{2}-\d{2}$/.test(x.s||"")).map(x=>toEvent(x,"pendente","tent"));
+    showOverlay = true; activeCats.add("pendente");
+    document.getElementById("overlayWrap").classList.remove("hidden");
+    renderReview(); renderCalendar(); renderList();
+  }catch(e){ st.textContent = "Não foi possível carregar os envios agora. Tente de novo em instantes."; }
+  finally{ clearTimeout(timer); }
 }
-function renderPainel(){
-  const box = document.getElementById("painelList");
-  box.innerHTML = envios.slice().sort((a,b)=>(a.ministerio||"").localeCompare(b.ministerio||"")).map(en=>{
-    const its = (en.itens||[]).slice().sort((a,b)=>(a.s||"9").localeCompare(b.s||"9"));
-    return `<div class="ministry"><h4>${esc(en.ministerio||"Ministério")} <span class="status">— ${esc(en.lider||"")}${en.atualizadoEm?` · atualizado em ${new Date(en.atualizadoEm).toLocaleDateString("pt-BR")}`:""}</span></h4>
-      <table><tbody>${its.map(it=>{ const c = conflicts(it); return `<tr><td style="white-space:nowrap;width:150px">${it.s?(it.e&&it.e>it.s?`${fmt(it.s)} a ${fmt(it.e)}`:fmt(it.s)):"a definir"}</td><td><b>${esc(it.t)}</b>${it.h?` — ${esc(it.h)}`:""}${it.n?`<br><span class="status">${esc(it.n)}</span>`:""}${c?`<br><span class="hint" style="color:#8a5a00;font-size:12.5px">Choque: ${esc(c)}</span>`:""}</td></tr>`; }).join("")}</tbody></table></div>`;
-  }).join("");
+function renderReview(){
+  const pend = envios.filter(x=>!x.aprovado), aprov = envios.filter(x=>x.aprovado);
+  document.getElementById("painelStatus").textContent = `${pend.length} aguardando aprovação · ${aprov.length} já aprovada(s).`;
+  document.getElementById("painelActions").innerHTML = (planilhaUrl?`<a class="btn" href="${esc(planilhaUrl)}" target="_blank" rel="noopener">Abrir planilha para aprovar</a>`:"")+`<button class="btn alt" type="button" id="btnReload">Atualizar</button>`;
+  document.getElementById("btnReload").onclick = loadReview;
+  const groups = {}; pend.forEach(x=>{ (groups[x.ministerio||"Sem ministério"]=groups[x.ministerio||"Sem ministério"]||[]).push(x); });
+  const names = Object.keys(groups).sort((a,b)=>a.localeCompare(b));
+  document.getElementById("painelList").innerHTML = names.length ? names.map(m=>{
+    const its = groups[m].slice().sort((a,b)=>(a.s||"9").localeCompare(b.s||"9"));
+    return `<div class="ministry"><h4>${esc(m)} <span class="status">— ${esc(its[0].lider||"")} · recebido em ${esc(its[0].recebido||"")}</span></h4>
+      <table><tbody>${its.map(it=>{ const c = conflicts(it); return `<tr><td style="white-space:nowrap;width:150px">${it.s?(it.e&&it.e>it.s?`${fmt(it.s)} a ${fmt(it.e)}`:fmt(it.s)):"a definir"}</td><td><b>${esc(it.t)}</b>${it.h?` — ${esc(it.h)}`:""}${it.n?`<br><span class="status">${esc(it.n)}</span>`:""}${c?`<br><span style="color:#8a5a00;font-size:12.5px">Choque: ${esc(c)}</span>`:""}</td></tr>`; }).join("")}</tbody></table></div>`;
+  }).join("") : `<div class="empty-month">Nada aguardando aprovação.</div>`;
 }
-document.getElementById("btnCopyAll").onclick = async ()=>{
-  const txt = envios.map(en=>textFor(en.lider, en.ministerio, en.itens||[])).join("\n\n----------\n\n");
-  try{ await navigator.clipboard.writeText(txt||"Nenhum envio."); document.getElementById("copyAllStatus").textContent = "Copiado."; }catch(e){ document.getElementById("copyAllStatus").textContent = "Não consegui copiar."; }
-};
-document.getElementById("overlay").addEventListener("change", e=>{ showOverlay = e.target.checked; if(showOverlay) activeCats.add("lider"); renderCalendar(); renderList(); });
+document.getElementById("overlay").addEventListener("change", e=>{ showOverlay = e.target.checked; renderCalendar(); renderList(); });
 
 // ---------- Início ----------
 renderCalendar();
 loadDraft(); renderItems();
+loadApproved();
+if(location.hash === "#revisao" && SCRIPT_URL) initReview();
+window.addEventListener("hashchange", ()=>{ if(location.hash === "#revisao" && SCRIPT_URL) initReview(); });
 </script>
 </body>
 </html>
